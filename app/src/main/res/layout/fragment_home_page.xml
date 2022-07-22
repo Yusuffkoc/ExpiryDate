@@ -9,7 +9,9 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvProducts"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            tools:itemCount="4"
+            tools:listitem="@layout/item_product" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/addProduct"
