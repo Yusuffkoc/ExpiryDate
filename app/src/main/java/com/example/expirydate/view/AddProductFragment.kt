@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.net.toUri
 import com.example.expirydate.R
 import com.example.expirydate.base.BaseFragment
@@ -18,7 +19,10 @@ import com.example.expirydate.model.Product
 import com.example.expirydate.util.ImageUploadUtil
 import com.example.expirydate.viewModel.AddProductViewModel
 import com.github.dhaval2404.imagepicker.ImagePicker
+import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class AddProductFragment : BaseFragment() {
@@ -69,6 +73,34 @@ class AddProductFragment : BaseFragment() {
         binding.TitleViewId.backIv.setOnClickListener(this::onBackPressed)
         binding.addProductBtn.setOnClickListener(this::addProduct)
         binding.productImageIv.setOnClickListener(this::addImage)
+        binding.dateSelectCv.setOnClickListener(this::selectDate)
+    }
+
+    private val outputDateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+
+    private fun selectDate(v:View) {
+        val picker =
+            MaterialDatePicker.Builder.datePicker()
+                .setTitleText("")
+                .build()
+
+        picker.show(this.parentFragmentManager,"")
+
+        picker.addOnPositiveButtonClickListener {
+            showToast(it.toString())
+            binding.selectDate.text = outputDateFormat.format(it)
+        }
+        picker.addOnNegativeButtonClickListener {
+            showToast("negatif")
+        }
+        picker.addOnCancelListener {
+            showToast("cancel")
+        }
+        picker.addOnDismissListener {
+            showToast("dismiss")
+        }
     }
 
     private fun addImage(v: View) {
@@ -79,15 +111,16 @@ class AddProductFragment : BaseFragment() {
         if (validProductDetails()) {
             val productName = binding.productNameEt.text.trim().toString()
             val productDetails = binding.productDetailEt.text.trim().toString()
-            val imageUrl = product?.imageUrl
+            var imageUrl = product?.imageUrl
+            if (imageUrl == null){
+                imageUrl = ""
+            }
+            val expirtydate = binding.selectDate.text.trim().toString()
+            val product = getProductWillUpdate(productName, productDetails,expirtydate, imageUrl)
             if (updateProduct) {
-                val product = getProductWillUpdate(productName, productDetails, imageUrl)
                 viewModel.updateProduct(product = product)
             } else {
-                viewModel.addProductToDatabase(
-                    productName = productName,
-                    productDetail = productDetails
-                )
+                viewModel.addProductToDatabase(product = product)
             }
             Looper.myLooper()?.let {
                 Handler(it).postDelayed({
@@ -101,20 +134,25 @@ class AddProductFragment : BaseFragment() {
     private fun getProductWillUpdate(
         productName: String,
         productDetails: String,
+        expirtyDate:String,
         imageUrl: String?
     ): Product {
         return Product(
             id = product!!.id,
             productName = productName,
             productDetail = productDetails,
-            "12.22.2222",
+            expiryDate = expirtyDate,
             imageUrl = imageUrl
         )
     }
 
     private fun validProductDetails(): Boolean {
-        if (binding.productNameEt.text.isNullOrEmpty()) {
+        if (binding.productNameEt.text.trim().isEmpty()) {
             showToast(getString(R.string.empty_product_name))
+            return false
+        }
+        if (binding.selectDate.text.trim().isEmpty()){
+            showToast(getString(R.string.empty_product_date))
             return false
         }
         return true
