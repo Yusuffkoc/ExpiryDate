@@ -10,4 +10,5 @@ interface ProductRepository {
     fun deleteProduct(product: Product)
     fun getAllWords(): LiveData<List<Product>>
     fun insertImageUrl(uri: String,productId: Int)
+    suspend fun updateProduct(product: Product)
 }

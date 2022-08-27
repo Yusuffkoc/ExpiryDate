@@ -2,6 +2,7 @@ package com.example.expirydate
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.databinding.DataBindingUtil
 import com.example.expirydate.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint

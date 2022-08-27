@@ -15,11 +15,15 @@ class ProductRepositoryImpl(private val productDAO: ProductDAO) : ProductReposit
         productDAO.deleteProduct(product)
     }
 
-    override  fun getAllWords(): LiveData<List<Product>> {
+    override fun getAllWords(): LiveData<List<Product>> {
         return productDAO.getAllWords()
     }
 
     override fun insertImageUrl(uri: String, productId: Int) {
-        productDAO.insertImageUrl(uri,productId)
+        productDAO.insertImageUrl(uri, productId)
+    }
+
+    override suspend fun updateProduct(product: Product) {
+        productDAO.updateProduct(product)
     }
 }

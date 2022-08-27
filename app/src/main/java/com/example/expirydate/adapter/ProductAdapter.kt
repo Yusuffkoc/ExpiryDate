@@ -31,6 +31,10 @@ class ProductAdapter() : RecyclerView.Adapter<ProductAdapter.WordViewHolder>() {
             binding.uploadImageCv.setOnClickListener {
                 clickListener.uploadImage(binding.productImage, item)
             }
+
+            binding.productCv.setOnClickListener {
+                clickListener.openProductDetail(item)
+            }
         }
     }
 
@@ -67,6 +71,7 @@ class ProductAdapter() : RecyclerView.Adapter<ProductAdapter.WordViewHolder>() {
     interface ClickListener {
         fun deleteProduct(product: Product)
         fun uploadImage(iv: ImageView, product: Product)
+        fun openProductDetail(product: Product)
     }
 
 }

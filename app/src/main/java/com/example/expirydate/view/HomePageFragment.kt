@@ -17,14 +17,16 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.example.expirydate.R
 import com.example.expirydate.adapter.ProductAdapter
+import com.example.expirydate.base.BaseFragment
 import com.example.expirydate.databinding.FragmentHomePageBinding
 import com.example.expirydate.model.Product
+import com.example.expirydate.util.ImageUploadUtil
 import com.example.expirydate.viewModel.ProductsViewModel
 import com.github.dhaval2404.imagepicker.ImagePicker
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HomePageFragment : Fragment(), ProductAdapter.ClickListener {
+class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
 
     private lateinit var binding: FragmentHomePageBinding
     private val viewModel: ProductsViewModel by viewModels()
@@ -61,7 +63,10 @@ class HomePageFragment : Fragment(), ProductAdapter.ClickListener {
 
     private fun initObserve() {
         viewModel.getAllWords().observe(viewLifecycleOwner) {
-            productAdapter.submitList(it)
+            if (!it.isNullOrEmpty()){
+                val list = it.reversed()
+                productAdapter.submitList(list)
+            }
         }
     }
 
@@ -102,20 +107,27 @@ class HomePageFragment : Fragment(), ProductAdapter.ClickListener {
     override fun uploadImage(iv: ImageView, product: Product) {
         productImage = iv
         uploadedImageForProduct = product
-        ImagePicker.with(this)
-            .crop()                    //Crop image(Optional), Check Customization for more option
-            .compress(1024)            //Final image size will be less than 1 MB(Optional)
-            .maxResultSize(
-                1080,
-                1080
-            )    //Final image resolution will be less than 1080 x 1080(Optional)
-            .start()
+        ImageUploadUtil.uploadPhoto(this)
+    }
+
+    override fun openProductDetail(product: Product) {
+        val bundle = Bundle().apply {
+            putParcelable("product", product)
+        }
+        Navigation.findNavController(this.view!!)
+            .navigate(R.id.action_homePageFragment_to_addProductFragment, bundle)
+    }
+
+    private fun saveImageToDatabase(uri: Uri) {
+        uploadedImageForProduct?.let { viewModel.saveImageUrl(uri.toString(), it.id) }
+        viewModel.getAllWords()
+        productImage = null
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == ImagePicker.REQUEST_CODE) {
-            Toast.makeText(this.context, "uploaded Image", Toast.LENGTH_SHORT).show()
+            showToast(getString(R.string.uploaded_image))
             //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!
             productImage?.setImageURI(uri)
@@ -123,17 +135,10 @@ class HomePageFragment : Fragment(), ProductAdapter.ClickListener {
             // Use Uri object instead of File to avoid storage permissions
             saveImageToDatabase(uri)
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
-            Toast.makeText(this.context, ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
+            showToast(ImagePicker.getError(data))
         } else {
-            Toast.makeText(this.context, getString(R.string.task_canceled), Toast.LENGTH_SHORT)
-                .show()
+            showToast(getString(R.string.task_canceled))
         }
-    }
-
-    private fun saveImageToDatabase(uri: Uri) {
-        uploadedImageForProduct?.let { viewModel.saveImageUrl(uri.toString(), it.id) }
-        viewModel.getAllWords()
-        productImage = null
     }
 
 }

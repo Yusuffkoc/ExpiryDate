@@ -1,6 +1,5 @@
 package com.example.expirydate.viewModel
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -13,16 +12,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProductsViewModel @Inject constructor(private val wordsRepository: ProductRepository) :
+class ProductsViewModel @Inject constructor(private val productRepository: ProductRepository) :
     ViewModel() {
+
+    companion object {
+        private const val TAG = "ProductsViewModel"
+    }
+
     fun saveProductToDatabase(text: String) = liveData {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                Log.d("", "Delete Product succeeded")
-                wordsRepository.insertProducts(Product(0, text, "12.12.2022", ""))
+                Log.d(TAG, "saveProductToDatabase succeeded")
+                productRepository.insertProducts(Product(0, text, "", "12.12.2022", ""))
                 emit(true)
             } catch (e: Exception) {
-                Log.d("", "Delete Product failed")
+                Log.d(TAG, "saveProductToDatabase failed" + e.message)
                 emit(false)
             }
         }
@@ -31,10 +35,10 @@ class ProductsViewModel @Inject constructor(private val wordsRepository: Product
     fun deleteProduct(product: Product) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                wordsRepository.deleteProduct(product)
-                Log.d("", "Delete Product succeeded.")
+                productRepository.deleteProduct(product)
+                Log.d(TAG, "Delete Product succeeded.")
             } catch (e: Exception) {
-                Log.d("", "Delete Product Failed.")
+                Log.d(TAG, "Delete Product Failed." + e.message)
             }
         }
     }
@@ -42,13 +46,13 @@ class ProductsViewModel @Inject constructor(private val wordsRepository: Product
     fun saveImageUrl(uri: String, productId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                wordsRepository.insertImageUrl(uri, productId)
-                Log.d("", "Save Image Url succeeded.")
+                productRepository.insertImageUrl(uri, productId)
+                Log.d(TAG, "Save Image Url succeeded.")
             } catch (e: Exception) {
-                Log.d("", "Save Image Url Failed.")
+                Log.d(TAG, "Save Image Url Failed." + e.message)
             }
         }
     }
 
-    fun getAllWords() = wordsRepository.getAllWords()
+    fun getAllWords() = productRepository.getAllWords()
 }
