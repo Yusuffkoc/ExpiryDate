@@ -15,7 +15,7 @@ class ProductRepositoryImpl(private val productDAO: ProductDAO) : ProductReposit
         productDAO.deleteProduct(product)
     }
 
-    override fun getAllWords(): LiveData<List<Product>> {
+    override fun getAllProducts(): LiveData<List<Product>> {
         return productDAO.getAllWords()
     }
 

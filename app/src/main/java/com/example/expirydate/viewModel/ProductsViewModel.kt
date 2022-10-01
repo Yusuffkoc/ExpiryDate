@@ -54,5 +54,5 @@ class ProductsViewModel @Inject constructor(private val productRepository: Produ
         }
     }
 
-    fun getAllWords() = productRepository.getAllWords()
+    fun getProducts() = productRepository.getAllProducts()
 }

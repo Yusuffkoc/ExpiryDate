@@ -49,8 +49,10 @@ class ProductAdapter() : RecyclerView.Adapter<ProductAdapter.WordViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: WordViewHolder, position: Int) {
-        val word = productList[position]
-        holder.bind(word)
+        if (productList.isNotEmpty()){
+            val word = productList[position]
+            holder.bind(word)
+        }
     }
 
 

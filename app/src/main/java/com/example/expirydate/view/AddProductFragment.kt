@@ -10,7 +10,6 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.net.toUri
 import com.example.expirydate.R
 import com.example.expirydate.base.BaseFragment
@@ -35,6 +34,7 @@ class AddProductFragment : BaseFragment() {
     private lateinit var binding: FragmentAddProductBinding
     private var updateProduct: Boolean = false
     private var product: Product? = null
+    private var imageUrl: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,12 +52,18 @@ class AddProductFragment : BaseFragment() {
         if (product != null) {
             updateProduct = true
             changeSubmitButtonText()
-            binding.TitleViewId.pageNameTv.text = getString(R.string.update_new_product)
-            binding.productNameEt.setText(product!!.productName)
-            binding.productDetailEt.setText(product!!.productDetail)
-            if (!product!!.imageUrl.isNullOrEmpty()) {
-                binding.productImageIv.setImageURI(product!!.imageUrl?.toUri())
-            }
+            setExistingData()
+        }
+    }
+
+    private fun setExistingData() {
+        binding.TitleViewId.pageNameTv.text = getString(R.string.update_new_product)
+        binding.productNameEt.setText(product!!.productName)
+        binding.productDetailEt.setText(product!!.productDetail)
+        binding.selectDate.text = product!!.expiryDate
+        imageUrl=product?.imageUrl
+        if (!product!!.imageUrl.isNullOrEmpty()) {
+            binding.productImageIv.setImageURI(product!!.imageUrl?.toUri())
         }
     }
 
@@ -80,26 +86,26 @@ class AddProductFragment : BaseFragment() {
         timeZone = TimeZone.getTimeZone("UTC")
     }
 
-    private fun selectDate(v:View) {
+    private fun selectDate(v: View) {
         val picker =
             MaterialDatePicker.Builder.datePicker()
                 .setTitleText("")
                 .build()
 
-        picker.show(this.parentFragmentManager,"")
+        picker.show(this.parentFragmentManager, "")
 
         picker.addOnPositiveButtonClickListener {
-            showToast(it.toString())
+//            showToast(it.toString())
             binding.selectDate.text = outputDateFormat.format(it)
         }
         picker.addOnNegativeButtonClickListener {
-            showToast("negatif")
+//            showToast("negatif")
         }
         picker.addOnCancelListener {
-            showToast("cancel")
+//            showToast("cancel")
         }
         picker.addOnDismissListener {
-            showToast("dismiss")
+//            showToast("dismiss")
         }
     }
 
@@ -111,15 +117,22 @@ class AddProductFragment : BaseFragment() {
         if (validProductDetails()) {
             val productName = binding.productNameEt.text.trim().toString()
             val productDetails = binding.productDetailEt.text.trim().toString()
-            var imageUrl = product?.imageUrl
-            if (imageUrl == null){
+            if (imageUrl == null) {
                 imageUrl = ""
             }
             val expirtydate = binding.selectDate.text.trim().toString()
-            val product = getProductWillUpdate(productName, productDetails,expirtydate, imageUrl)
             if (updateProduct) {
+                val product = getProductWillUpdate(
+                    product!!.id,
+                    productName,
+                    productDetails,
+                    expirtydate,
+                    imageUrl
+                )
                 viewModel.updateProduct(product = product)
             } else {
+                val product =
+                    getProductWillUpdate(0, productName, productDetails, expirtydate, imageUrl)
                 viewModel.addProductToDatabase(product = product)
             }
             Looper.myLooper()?.let {
@@ -132,13 +145,14 @@ class AddProductFragment : BaseFragment() {
     }
 
     private fun getProductWillUpdate(
+        id: Int,
         productName: String,
         productDetails: String,
-        expirtyDate:String,
+        expirtyDate: String,
         imageUrl: String?
     ): Product {
         return Product(
-            id = product!!.id,
+            id = id,
             productName = productName,
             productDetail = productDetails,
             expiryDate = expirtyDate,
@@ -151,7 +165,7 @@ class AddProductFragment : BaseFragment() {
             showToast(getString(R.string.empty_product_name))
             return false
         }
-        if (binding.selectDate.text.trim().isEmpty()){
+        if (binding.selectDate.text.trim().isEmpty()) {
             showToast(getString(R.string.empty_product_date))
             return false
         }
@@ -164,7 +178,7 @@ class AddProductFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(AddProductViewModel::class.java)
+        viewModel = ViewModelProvider(this)[AddProductViewModel::class.java]
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -175,7 +189,7 @@ class AddProductFragment : BaseFragment() {
             val uri: Uri = data?.data!!
             binding.productImageIv.setImageURI(uri)
             // Use Uri object instead of File to avoid storage permissions
-            product.let { it?.imageUrl = uri.toString() }
+            imageUrl = uri.toString()
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
             showToast(ImagePicker.getError(data))
         } else {

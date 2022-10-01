@@ -21,7 +21,15 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -41,6 +49,7 @@ def lifecycle_version = "2.5.0-beta01"
 def nav_version = "2.4.2"
 def lottieVersion = "5.1.1"
 def glideVersion = "4.13.2"
+def work_version = "2.7.1"
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -57,6 +66,9 @@ dependencies {
     //HİLT
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
+    kapt("androidx.hilt:hilt-compiler:1.0.0")
+    implementation "androidx.hilt:hilt-work:1.0.0"
+
     //VİEWMODEL KTX
     implementation "androidx.fragment:fragment-ktx:1.4.1"
 
@@ -85,5 +97,8 @@ dependencies {
     //Glide
     implementation "com.github.bumptech.glide:glide:$glideVersion"
     annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
+
+    //WorkManager
+    implementation("androidx.work:work-runtime-ktx:$work_version")
 
 }

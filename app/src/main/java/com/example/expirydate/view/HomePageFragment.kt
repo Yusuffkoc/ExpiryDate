@@ -1,18 +1,25 @@
 package com.example.expirydate.view
 
 import android.app.Activity
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.fragment.app.Fragment
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.getSystemService
 import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.*
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.example.expirydate.R
@@ -22,8 +29,10 @@ import com.example.expirydate.databinding.FragmentHomePageBinding
 import com.example.expirydate.model.Product
 import com.example.expirydate.util.ImageUploadUtil
 import com.example.expirydate.viewModel.ProductsViewModel
+import com.example.expirydate.worker.NotificationWM
 import com.github.dhaval2404.imagepicker.ImagePicker
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
@@ -43,7 +52,30 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
         setUpRecyclerView()
         initObserve()
         initListener()
+        initData()
+//        notification()
         return binding.root
+    }
+
+    private fun notification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            var channel=NotificationChannel("My notification","My notification",NotificationManager.IMPORTANCE_DEFAULT)
+            var manager = this.context!!.getSystemService<NotificationManager>()
+            manager!!.createNotificationChannel(channel)
+        }
+
+        var builder = NotificationCompat.Builder(requireContext(), "My notification")
+        builder.setContentTitle("Title")
+        builder.setContentText("Context sssd ....")
+        builder.setSmallIcon(R.mipmap.ic_launcher_foreground)
+        builder.setAutoCancel(true)
+
+        var manager = NotificationManagerCompat.from(requireContext())
+        manager.notify(1, builder.build())
+    }
+
+    private fun initData() {
+        viewModel.getProducts()
     }
 
     private fun initListener() {
@@ -62,8 +94,8 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
     }
 
     private fun initObserve() {
-        viewModel.getAllWords().observe(viewLifecycleOwner) {
-            if (!it.isNullOrEmpty()){
+        viewModel.getProducts().observe(viewLifecycleOwner) {
+            if (!it.isNullOrEmpty()) {
                 val list = it.reversed()
                 productAdapter.submitList(list)
             }
@@ -120,7 +152,7 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
 
     private fun saveImageToDatabase(uri: Uri) {
         uploadedImageForProduct?.let { viewModel.saveImageUrl(uri.toString(), it.id) }
-        viewModel.getAllWords()
+        viewModel.getProducts()
         productImage = null
     }
 
@@ -139,6 +171,25 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
         } else {
             showToast(getString(R.string.task_canceled))
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        createWorkManager()
+
+    }
+
+    private fun createWorkManager() {
+        val workManager = WorkManager.getInstance(requireContext())
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(false)
+            .build()
+
+        val work = PeriodicWorkRequestBuilder<NotificationWM>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+        workManager.enqueue(work)
     }
 
 }
