@@ -1,6 +1,5 @@
 package com.example.expirydate.repository
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import com.example.expirydate.database.ProductDAO
 import com.example.expirydate.model.Product

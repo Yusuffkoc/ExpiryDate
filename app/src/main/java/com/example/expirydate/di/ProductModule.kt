@@ -13,7 +13,7 @@ import dagger.hilt.android.components.ViewModelComponent
 object ProductModule {
 
     @Provides
-    fun provideWordRepository(productDAO: ProductDAO): ProductRepository {
+    fun provideProductRepository(productDAO: ProductDAO): ProductRepository {
         return ProductRepositoryImpl(productDAO)
     }
 }

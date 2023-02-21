@@ -16,6 +16,7 @@
     <string name="update_new_product">Update Product</string>
     <string name="empty_product_name">Please Enter Product Name!!!</string>
     <string name="empty_product_date">Please Enter Product Date!!!</string>
+    <string name="empty_product_valid_date">Please Enter Valid Product Date!!!</string>
     <string name="update_btn">Update</string>
     <string name="date_title">Date</string>
     <string name="date_explanation">Enter The Expiry Date...</string>

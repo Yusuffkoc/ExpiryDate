@@ -3,7 +3,7 @@ package com.example.expirydate.view
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import androidx.lifecycle.ViewModelProvider
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModelProvider
 import com.example.expirydate.R
 import com.example.expirydate.base.BaseFragment
 import com.example.expirydate.databinding.FragmentAddProductBinding
@@ -21,6 +22,8 @@ import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @AndroidEntryPoint
@@ -35,6 +38,10 @@ class AddProductFragment : BaseFragment() {
     private var updateProduct: Boolean = false
     private var product: Product? = null
     private var imageUrl: String? = null
+    private val dateFormat = "dd.MM.yyyy"
+    private val outputDateFormat = SimpleDateFormat(dateFormat, Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,10 +87,6 @@ class AddProductFragment : BaseFragment() {
         binding.addProductBtn.setOnClickListener(this::addProduct)
         binding.productImageIv.setOnClickListener(this::addImage)
         binding.dateSelectCv.setOnClickListener(this::selectDate)
-    }
-
-    private val outputDateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
     }
 
     private fun selectDate(v: View) {
@@ -169,7 +172,31 @@ class AddProductFragment : BaseFragment() {
             showToast(getString(R.string.empty_product_date))
             return false
         }
+        if (!checkDateArrange()) {
+            showToast(getString(R.string.empty_product_valid_date))
+            return false
+        }
         return true
+    }
+
+    private fun checkDateArrange(): Boolean {
+        val formatter = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            DateTimeFormatter.ofPattern(dateFormat)
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
+        val current = LocalDateTime.now().format(formatter)
+        val currentDate: Date = outputDateFormat.parse(current)
+        val userSelectedDate: Date = outputDateFormat.parse(binding.selectDate.text.toString())
+        val result = currentDate.compareTo(userSelectedDate)
+        return when {
+            result > 0 -> {
+                false
+            }
+            else -> {
+                true
+            }
+        }
     }
 
     private fun onBackPressed(v: View) {
@@ -184,6 +211,7 @@ class AddProductFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == ImagePicker.REQUEST_CODE) {
+            showToast(getString(R.string.uploaded_image))
             showToast(getString(R.string.uploaded_image))
             //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!

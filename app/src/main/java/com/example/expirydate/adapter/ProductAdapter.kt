@@ -24,8 +24,8 @@ class ProductAdapter() : RecyclerView.Adapter<ProductAdapter.WordViewHolder>() {
                 .into(binding.productImage)
             binding.deleteIv.setOnClickListener {
                 clickListener.deleteProduct(item)
-                productList.remove(item)
-                notifyItemRemoved(adapterPosition)
+//                productList.remove(item)
+//                notifyItemRemoved(adapterPosition)
             }
 
             binding.uploadImageCv.setOnClickListener {

@@ -1,7 +1,6 @@
 package com.example.expirydate.view
 
 import android.app.Activity
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
@@ -19,7 +18,10 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.example.expirydate.R
@@ -42,6 +44,8 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
     private lateinit var productAdapter: ProductAdapter
     private var productImage: ImageView? = null
     private var uploadedImageForProduct: Product? = null
+    private var productList: MutableList<Product>? = null
+
 
 
     override fun onCreateView(
@@ -84,6 +88,7 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
 //        }
         binding.addProduct.setOnClickListener {
             navigateAddNewProductPage()
+            createWorkManager()
         }
         productAdapter.setClickListener(this)
     }
@@ -96,8 +101,10 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
     private fun initObserve() {
         viewModel.getProducts().observe(viewLifecycleOwner) {
             if (!it.isNullOrEmpty()) {
+                productList = it.toMutableList()
                 val list = it.reversed()
                 productAdapter.submitList(list)
+                productAdapter.notifyDataSetChanged()
             }
         }
     }
@@ -131,6 +138,9 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
     override fun deleteProduct(product: Product) {
         viewModel.let {
             viewModel.deleteProduct(product)
+            productList?.remove(product)
+            productList?.let { it1 -> productAdapter.submitList(it1) }
+            productAdapter.notifyDataSetChanged()
             Toast.makeText(this.context, "${product.productName}  Deleted.", Toast.LENGTH_SHORT)
                 .show()
         }
@@ -173,11 +183,6 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        createWorkManager()
-
-    }
 
     private fun createWorkManager() {
         val workManager = WorkManager.getInstance(requireContext())
@@ -186,7 +191,7 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
             .setRequiresBatteryNotLow(false)
             .build()
 
-        val work = PeriodicWorkRequestBuilder<NotificationWM>(15, TimeUnit.MINUTES)
+        val work = PeriodicWorkRequestBuilder<NotificationWM>(1, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
         workManager.enqueue(work)
