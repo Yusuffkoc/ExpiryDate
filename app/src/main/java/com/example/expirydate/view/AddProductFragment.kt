@@ -90,9 +90,10 @@ class AddProductFragment : BaseFragment() {
     }
 
     private fun selectDate(v: View) {
+        binding.productDetailEt.isFocusable = false
         val picker =
             MaterialDatePicker.Builder.datePicker()
-                .setTitleText("")
+                .setTitleText("Choose Date..")
                 .build()
 
         picker.show(this.parentFragmentManager, "")
@@ -211,7 +212,6 @@ class AddProductFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == ImagePicker.REQUEST_CODE) {
-            showToast(getString(R.string.uploaded_image))
             showToast(getString(R.string.uploaded_image))
             //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!
