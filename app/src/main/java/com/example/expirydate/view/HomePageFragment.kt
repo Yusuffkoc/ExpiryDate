@@ -88,7 +88,7 @@ class HomePageFragment : BaseFragment(), ProductAdapter.ClickListener {
 //        }
         binding.addProduct.setOnClickListener {
             navigateAddNewProductPage()
-            createWorkManager()
+            //createWorkManager()
         }
         productAdapter.setClickListener(this)
     }

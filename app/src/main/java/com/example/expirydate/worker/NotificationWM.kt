@@ -30,7 +30,7 @@ class NotificationWM @AssistedInject constructor(
     Worker(context, workerParameters) {
 
     private val TAG = NotificationWM::class.java.name
-    private val productRepository: ProductRepository = ProductRepositoryImpl(productDAO = ProductDAO)
+    //private val productRepository: ProductRepository = ProductRepositoryImpl(productDAO = ProductDAO)
 
     override fun doWork(): Result {
         sendNotification()
@@ -38,7 +38,7 @@ class NotificationWM @AssistedInject constructor(
     }
 
     private fun sendNotification() {
-        var list = productRepository.getAllProducts().value
+        //var list = productRepository.getAllProducts().value
 //        list.value?.forEach {
 //            Log.d("Yusuf", it.productName.toString())
 //        }
